@@ -26,8 +26,95 @@ describe('module bookingService', () => {
     });
 
     describe('when roomId is valid', () => {
+      let checkEnrollmentTicketSpy: jest.SpyInstance;
+
       beforeEach(() => {
         roomId = 40;
+      });
+
+      describe('when the function checkEnrollmentTicket rejects its promise', () => {
+        beforeEach(() => {
+          checkEnrollmentTicketSpy = jest
+            .spyOn(bookingService, 'checkEnrollmentTicket')
+            .mockRejectedValue({ error: '1' });
+        });
+
+        it('calls the function checkEnrollmentTicket', async () => {
+          try {
+            await subject();
+          } catch {}
+
+          expect(checkEnrollmentTicketSpy).toBeCalledTimes(1);
+          expect(checkEnrollmentTicketSpy).toBeCalledWith(userId);
+        });
+
+        it('rejects to the value of checkEnrollmentTicket error', async () => {
+          await expect(subject()).rejects.toEqual({ error: '1' });
+        });
+      });
+
+      describe('when the function checkEnrollmentTicket resolves its promise', () => {
+        let checkValidBookingSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+          checkEnrollmentTicketSpy = jest.spyOn(bookingService, 'checkEnrollmentTicket').mockResolvedValue(null);
+        });
+
+        it('calls the function checkEnrollmentTicket', async () => {
+          try {
+            await subject();
+          } catch {}
+
+          expect(checkEnrollmentTicketSpy).toBeCalledTimes(1);
+          expect(checkEnrollmentTicketSpy).toBeCalledWith(userId);
+        });
+
+        describe('when the function checkValidBooking rejects its promise', () => {
+          beforeEach(() => {
+            checkValidBookingSpy = jest.spyOn(bookingService, 'checkValidBooking').mockRejectedValue({ error: '2' });
+          });
+
+          it('calls the function checkValidBooking from bookingService with correct args', async () => {
+            try {
+              await subject();
+            } catch {}
+
+            expect(checkValidBookingSpy).toBeCalledTimes(1);
+            expect(checkValidBookingSpy).toBeCalledWith(roomId);
+          });
+
+          it('rejects to the value of checkValidBooking error', async () => {
+            await expect(subject()).rejects.toEqual({ error: '2' });
+          });
+        });
+
+        describe('when the function checkValidBooking resolves its promise', () => {
+          const booking = { userId } as Booking;
+          let createBookingSpy: jest.SpyInstance;
+
+          beforeEach(() => {
+            checkValidBookingSpy = jest.spyOn(bookingService, 'checkValidBooking').mockResolvedValue(null);
+            createBookingSpy = jest.spyOn(bookingRepository, 'create').mockResolvedValue(booking);
+          });
+
+          it('calls the function checkValidBooking from bookingService with correct args', async () => {
+            await subject();
+
+            expect(checkValidBookingSpy).toBeCalledTimes(1);
+            expect(checkValidBookingSpy).toBeCalledWith(roomId);
+          });
+
+          it('calls the function create from bookingRepository with correct args', async () => {
+            await subject();
+
+            expect(createBookingSpy).toBeCalledTimes(1);
+            expect(createBookingSpy).toBeCalledWith({ roomId, userId });
+          });
+
+          it('resolves to the correct value', async () => {
+            await expect(subject()).resolves.toEqual(booking);
+          });
+        });
       });
     });
   });
