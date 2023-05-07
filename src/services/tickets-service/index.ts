@@ -6,7 +6,6 @@ import { CreateTicketParams } from '@/protocols';
 
 async function getTicketType(): Promise<TicketType[]> {
   const ticketTypes: TicketType[] = await ticketsRepository.findTicketTypes();
-  if (!ticketTypes) throw notFoundError();
 
   return ticketTypes;
 }
@@ -31,11 +30,9 @@ async function createTicket(userId: number, ticketTypeId: number): Promise<Ticke
     status: TicketStatus.RESERVED,
   };
 
-  await ticketsRepository.createTicket(ticketData);
+  const newTicket = await ticketsRepository.createTicket(ticketData);
 
-  const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id);
-
-  return ticket;
+  return newTicket;
 }
 
 const ticketService = { getTicketType, getTicketByUserId, createTicket };

@@ -22,6 +22,9 @@ async function findTicketByEnrollmentId(enrollmentId: number): Promise<
 async function createTicket(ticket: CreateTicketParams) {
   return prisma.ticket.create({
     data: ticket,
+    include: {
+      TicketType: true,
+    },
   });
 }
 
